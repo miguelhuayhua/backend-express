@@ -25,7 +25,9 @@ LOGIN_ROUTER.post("/signup", async (req, res) => {
 
 
 LOGIN_ROUTER.post('/signin', async (req, res) => {
+    console.log(req.body)
     const { email, password } = req.body;
+
     const usuario = await prisma.usuario.findUnique({ where: { email } });
     if (!usuario) {
         return res.json({ mensaje: "Credenciales inválidas" }).status(400)

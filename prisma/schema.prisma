@@ -13,72 +13,102 @@ datasource db {
 }
 
 model producto {
-  id            String    @id @default(uuid()) @db.Uuid
-  nombre        String
-  precio        Float
-  stock         Int
-  activo        Boolean   @default(false)
-  creado_en     DateTime  @default(now())
-  modificado_en DateTime  @default(now())
-  proveedor_id  String    @unique @db.Uuid
-  proveedor     proveedor @relation(fields: [proveedor_id], references: [id])
-  compras       compra[]
+  id                String    @id @default(uuid()) @db.Uuid
+  nombre            String
+  codigo_barra      String?   @unique
+  precio            Float
+  stock             Int
+  fecha_vencimiento DateTime?
+  requiere_receta   Boolean   @default(false)
+  activo            Boolean   @default(true)
+  creado_en         DateTime  @default(now())
+  modificado_en     DateTime  @updatedAt
+
+  proveedor_id String    @db.Uuid
+  proveedor    proveedor @relation(fields: [proveedor_id], references: [id])
+
+  marca_id String? @db.Uuid
+  marca    marca?  @relation(fields: [marca_id], references: [id])
+
+  detalle_ventas detalle_venta[]
 }
 
 model proveedor {
-  id            String    @id @default(uuid()) @db.Uuid
+  id            String   @id @default(uuid()) @db.Uuid
   nombre        String
   telefono      String
-  email         String    @unique
-  activo        Boolean   @default(false)
-  creado_en     DateTime  @default(now())
-  modificado_en DateTime  @default(now())
-  producto      producto?
-  marcas        marca[]
+  email         String   @unique
+  activo        Boolean  @default(true)
+  creado_en     DateTime @default(now())
+  modificado_en DateTime @updatedAt
+
+  productos producto[]
+  marcas    marca[]
 }
 
 model marca {
-  id            String      @id @default(uuid()) @db.Uuid
+  id            String   @id @default(uuid()) @db.Uuid
   nombre        String
   laboratorio   String
   pais_origen   String
-  activo        Boolean     @default(true)
-  creado_en     DateTime    @default(now())
-  modificado_en DateTime    @default(now())
-  proveedores   proveedor[]
+  activo        Boolean  @default(true)
+  creado_en     DateTime @default(now())
+  modificado_en DateTime @updatedAt
+
+  productos   producto[]
+  proveedores proveedor[]
 }
 
 model cliente {
-  id            String   @id @default(uuid()) @db.Uuid
+  id            String      @id @default(uuid()) @db.Uuid
   nombre        String
-  telefono      String   @unique
-  email         String   @unique
-  activo        Boolean  @default(false)
-  creado_en     DateTime @default(now())
-  modificado_en DateTime @default(now())
-  compras       compra[]
+  telefono      String      @unique
+  email         String?     @unique
+  password      String
+  activo        Boolean     @default(true)
+  creado_en     DateTime    @default(now())
+  modificado_en DateTime    @updatedAt
+  tokens        token_cli[]
+  ventas        venta[]
 }
 
-model compra {
-  id              String   @id @default(uuid()) @db.Uuid
-  fecha           DateTime @default(now())
-  cantidad        Int      @default(0)
-  precio_unitario Float    @default(0.0)
-  activo          Boolean  @default(false)
-  id_cliente      String   @db.Uuid
-  cliente         cliente  @relation(fields: [id_cliente], references: [id])
-  id_producto     String   @db.Uuid
-  producto        producto @relation(fields: [id_producto], references: [id])
+model venta {
+  id        String   @id @default(uuid()) @db.Uuid
+  total     Float    @default(0)
+  creado_en DateTime @default(now())
+
+  cliente_id String?  @db.Uuid
+  cliente    cliente? @relation(fields: [cliente_id], references: [id])
+
+  usuario_id String  @db.Uuid
+  usuario    usuario @relation(fields: [usuario_id], references: [id])
+
+  detalles detalle_venta[]
+}
+
+model detalle_venta {
+  id              String @id @default(uuid()) @db.Uuid
+  cantidad        Int
+  precio_unitario Float
+  subtotal        Float
+
+  venta_id String @db.Uuid
+  venta    venta  @relation(fields: [venta_id], references: [id])
+
+  producto_id String   @db.Uuid
+  producto    producto @relation(fields: [producto_id], references: [id])
 }
 
 model usuario {
-  id             String          @id @default(uuid()) @db.Uuid
-  nombre         String
-  email          String          @unique
-  telefono       String
-  password       String
-  rol            rol             @default(cajero)
-  creado_en      DateTime        @default(now())
+  id        String   @id @default(uuid()) @db.Uuid
+  nombre    String
+  email     String   @unique
+  telefono  String
+  password  String
+  rol       rol      @default(cajero)
+  creado_en DateTime @default(now())
+
+  ventas         venta[]
   tokens_sis     token_sis[]
   detalle_cajero detalle_cajero?
 }
@@ -90,18 +120,30 @@ enum rol {
 
 model token_sis {
   id         String   @id @default(uuid()) @db.Uuid
-  usuario_id String   @unique @db.Uuid
+  usuario_id String   @db.Uuid
   token      String
   creado_en  DateTime @default(now())
   expira_en  DateTime
   estado     Boolean  @default(true)
-  usuario    usuario  @relation(fields: [usuario_id], references: [id])
+
+  usuario usuario @relation(fields: [usuario_id], references: [id])
 }
 
 model detalle_cajero {
-  id            String  @id @default(uuid()) @db.Uuid
-  usuario_id    String  @unique @db.Uuid
+  id            String @id @default(uuid()) @db.Uuid
+  usuario_id    String @unique @db.Uuid
   turno         String
   caja_asignada String
-  usuario       usuario @relation(fields: [usuario_id], references: [id])
+
+  usuario usuario @relation(fields: [usuario_id], references: [id])
+}
+
+model token_cli {
+  id         String   @id @default(uuid()) @db.Uuid
+  id_cliente String   @db.Uuid
+  token      String
+  creado_en  DateTime @default(now())
+  expira_en  DateTime @default(now()) @db.Timestamp
+  estado     Boolean
+  cliente    cliente  @relation(fields: [id_cliente], references: [id])
 }
