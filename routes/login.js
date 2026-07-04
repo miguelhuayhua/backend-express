@@ -25,12 +25,11 @@ LOGIN_ROUTER.post("/signup", async (req, res) => {
 
 
 LOGIN_ROUTER.post('/signin', async (req, res) => {
-    console.log(req.body)
     const { email, password } = req.body;
 
     const usuario = await prisma.usuario.findUnique({ where: { email } });
     if (!usuario) {
-        return res.json({ mensaje: "Credenciales inválidas" }).status(400)
+        return res.json({ mensaje: "Credenciales inválidas", estado: 400 }).status(400)
     }
 
     if (evaluarPassword(password, usuario.password)) {
@@ -42,10 +41,10 @@ LOGIN_ROUTER.post('/signin', async (req, res) => {
             }
         })
         res.cookie("refreshToken", refreshToken);
-        return res.json({ accessToken }).status(200);
+        return res.json({ accessToken, estado: 200, mensaje: "Usuario logueado exitosamente" }).status(200);
     }
     else {
-        return res.json({ mensaje: "Credenciales inválidas" }).status(401)
+        return res.json({ mensaje: "Credenciales inválidas", estado: 401 }).status(401)
     }
 })
 
