@@ -26,6 +26,7 @@ server.use("/api/login", LOGIN_ROUTER);
 
 const middleware = (req, res, next) => {
     let token = req.headers.authorization;
+    console.log(token)
     token = token.split(" ")[1]
     const payload = verificarToken(token, "access");
     if (payload) next()
@@ -47,9 +48,7 @@ server.get("/prueba", async (req, res) => {
 //RUTA INDEX PROTEGIDA 
 server.use("/api/auth", middleware, AUTH_INDEX_ROUTER)
 
-server.get("/inicio", (req, res) => {
-    return res.sendFile(path.resolve("public/index.html"))
-})
+server.use("/uploads", express.static("upload"))
 
 server.listen(8000, () => {
     console.log("Servidor corriendo en el puerto 8000")

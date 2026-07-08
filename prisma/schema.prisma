@@ -23,9 +23,10 @@ model producto {
   activo            Boolean   @default(true)
   creado_en         DateTime  @default(now())
   modificado_en     DateTime  @updatedAt
+  imagen            String
 
-  proveedor_id String    @db.Uuid
-  proveedor    proveedor @relation(fields: [proveedor_id], references: [id])
+  proveedor_id String?    @db.Uuid
+  proveedor    proveedor? @relation(fields: [proveedor_id], references: [id])
 
   marca_id String? @db.Uuid
   marca    marca?  @relation(fields: [marca_id], references: [id])
